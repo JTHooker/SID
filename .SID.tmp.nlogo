@@ -16,8 +16,8 @@ simuls-own [
   IDb
   IDc
   IDd
-  IDe
   orientation
+  IDorientation
   mean-xcor
   mean-ycor
 ]
@@ -29,8 +29,9 @@ patches-own [
 to setup
   clear-all
   setup-world
- ;;https://www.css.cnrs.fr/the-augmented-social-scientist-tutorial-at-ic2s2/ ask n-of 1 patches [ sprout-flags 1 [ set shape "flag" set size 5] ]
-  ask n-of Agents patches [ sprout-simuls 1 [ set color red set shape "arrow" set orientation heading set IDa 0 set IDb  set IDC random 1000 set IDd random 1000 set IDe random 1000 ] ]
+  ;https://www.css.cnrs.fr/the-augmented-social-scientist-tutorial-at-ic2s2/ ask n-of 1 patches [ sprout-flags 1 [ set shape "flag" set size 5] ]
+  ask n-of Agents patches [ sprout-simuls 1 [ set color red set shape "arrow" set orientation heading set IDa 0 set IDb 90 set IDC 180 set IDd 270 ] ]
+
    reset-ticks
 end
 
@@ -137,6 +138,11 @@ to removelinks
 ;
 ;L_ij_values
 
+to calculateIDorientation
+;  set IDorientation
+
+end
+
 
 
 to disturb
@@ -196,14 +202,14 @@ to makelinksIDd
     ]
   ]
 end
-to makelinksIDe
-  ask simuls [
-    let colleagues other simuls with [abs(IDe - [Ide] of myself) <= 1]
-    if count my-links < max_links and any? colleagues [
-      create-link-to one-of colleagues
-    ]
-  ]
-end
+;to makelinksIDe
+;  ask simuls [
+;    let colleagues other simuls with [abs(IDe - [Ide] of myself) <= 1]
+;    if count my-links < max_links and any? colleagues [
+;      create-link-to one-of colleagues
+;    ]
+;  ]
+;end
 
 
 to recolor
@@ -598,23 +604,6 @@ BUTTON
 363
 NIL
 makelinksIDd
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-384
-367
-485
-400
-NIL
-makelinksIDe
 NIL
 1
 T

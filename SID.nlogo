@@ -16,8 +16,8 @@ simuls-own [
   IDb
   IDc
   IDd
-  IDe
   orientation
+  IDorientation
   mean-xcor
   mean-ycor
 ]
@@ -29,8 +29,9 @@ patches-own [
 to setup
   clear-all
   setup-world
- ;;https://www.css.cnrs.fr/the-augmented-social-scientist-tutorial-at-ic2s2/ ask n-of 1 patches [ sprout-flags 1 [ set shape "flag" set size 5] ]
+  ;https://www.css.cnrs.fr/the-augmented-social-scientist-tutorial-at-ic2s2/ ask n-of 1 patches [ sprout-flags 1 [ set shape "flag" set size 5] ]
   ask n-of Agents patches [ sprout-simuls 1 [ set color red set shape "arrow" set orientation heading set IDa 0 set IDb 90 set IDC 180 set IDd 270 ] ]
+
    reset-ticks
 end
 
@@ -137,6 +138,11 @@ to removelinks
 ;
 ;L_ij_values
 
+to calculateIDorientation
+;;  set IDorientation
+
+end
+
 
 
 to disturb
@@ -209,7 +215,7 @@ end
 to recolor
   ask simuls [
     ; Calculate the mean of IDa, IDb, IDc, IDd, and IDe
-    let mean-ID mean (list IDa IDb IDc IDd IDe)
+    let mean-ID mean (list IDa IDb IDc IDd )
         let num-IDs 5
     ; Scale the mean value to a color gradient, assuming min-ID and max-ID are defined elsewhere
     set color scale-color green IDa 0 1000
