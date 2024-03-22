@@ -103,7 +103,8 @@ to removelinks
 ;; The impact time of the SID degradation determines the potential for re-connection to the SID.
 ;; There is an unfolding time over which the event degrades the SID - sudden degrades are more shocking - gradual degradation perhaps enables more adjustment - like aging.
 ;; The proportion of total SIDs affected depends on the connection of SIDs to one another - which is why death of spouse or divorce is so bad because of interconnections.
-;; X = IM(1-UT)/(UT+IT))
+;; X = IM(1-UT)/(UT+IT)) - IM refers to the proportion of IDs affected. The proportion of IDs affected can be calculated on the basis of the centrality of the first affected node n the iD network
+;; this is why it is so shocking when people in their 20's or famous people die - all of the networks are affected. When you die when you are old, most networks have already disconnected.
 ;; The impact on an individual is the extent to which their total SIDs are degraded. It is worse when it is total, fast, and permanent. It is better when it is partial, slow and temporary.
 ;; This doesn't take into account formation of new SIDs which can form over time
 ;; A primary SID relates to orientation. There can be infinite SIDs within the 360 degrees. The likelihood that you will also have an SID associated with your primary SID is
@@ -638,7 +639,7 @@ BUTTON
 436
 NIL
 recolor
-T
+NIL
 1
 T
 OBSERVER
@@ -1105,7 +1106,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.3.0
+NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
