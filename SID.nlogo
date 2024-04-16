@@ -29,17 +29,18 @@ patches-own [
 to setup
   clear-all
   setup-world
+  ask patches [ set pcolor white ]
   ;https://www.css.cnrs.fr/the-augmented-social-scientist-tutorial-at-ic2s2/ ask n-of 1 patches [ sprout-flags 1 [ set shape "flag" set size 5] ]
-  ask n-of Agents patches [ sprout-simuls 1 [ set color red set shape "arrow" set orientation heading set IDa 0 set IDb 90 set IDC 180 set IDd 270 ] ]
-
-   reset-ticks
+  ask n-of Agents patches [ sprout-simuls 1 [ set color red set shape "arrow" set orientation heading set IDa random 360 set IDb random (360 - IDA)
+    set IDC random (360 - (IDA + IDB)) set IDd random (360 - (IDA + IDB + IDC)) ] ]
+  reset-ticks
 end
 
 to setup-world
 
 end
 
-to setup-square
+to setup-square ;; these two functions should set up a set of links based on either a square or hexagonal lattice - they indicate links that are related to exposure or an immediate reference group
   clear-links
   ask simuls [ create-links-with turtles-on neighbors4 ]
   reset-ticks
@@ -62,25 +63,60 @@ to setup-hex
 end
 
 to go
-   ask simuls [ orient move ]
+   ask simuls [ move orient ]
    tick
 end
 
 to orient
-  let nearby-turtles turtles-on neighbors4
-  if any? nearby-turtles [
-    set mean-xcor mean [sin heading] of nearby-turtles
-    set mean-ycor mean [cos heading] of nearby-turtles
+  ; First identify in-group members via links
+  let in-group-members link-neighbors
+
+  ; Collect all turtles on the four adjacent patches (neighbors4)
+  let local-neighbors turtle-set [turtles-here] of neighbors4
+
+  ; Identify out-group members among local neighbors
+  let out-group-members local-neighbors with [not member? self in-group-members]
+
+  ; Now, process your in-group and out-group as needed
+  if any? in-group-members [
+    set mean-xcor mean [sin heading] of in-group-members
+    set mean-ycor mean [cos heading] of in-group-members
     set heading atan mean-xcor mean-ycor
+    set orientation heading + random jerror - random jerror
+  ]
+
+  if any? out-group-members [
+    set mean-xcor mean [sin heading] of out-group-members
+    set mean-ycor mean [cos heading] of out-group-members
+    set heading 180 - atan mean-xcor mean-ycor
     set orientation heading + random jerror - random jerror
   ]
 end
 
-to makelinks
+
+
+;to orient
+;  let in-group_members link-neighbors ;;turtles-on neighbors4
+;  if any? in-group_members [
+;    set mean-xcor mean [sin heading] of in-group_members
+;    set mean-ycor mean [cos heading] of in-group_members
+;    set heading atan mean-xcor mean-ycor
+;    set orientation heading + random jerror - random jerror
+;
+;  let out-group_members not in-group_members
+;  if any? out-group_members on neighbors4 [  ;;;;; up to this bit - fix the code here
+;    set mean-xcor mean [sin heading] of out-group_members
+;    set mean-ycor mean [cos heading] of out-group_members
+;    set heading 180 - atan mean-xcor mean-ycor
+;    set orientation heading + random jerror - random jerror
+;  ]]
+;end
+
+to makefamlinks ;; this function shoudl create a set of links between agents that are based on orientation
   ask simuls [
     let colleagues other simuls with [abs(heading - [heading] of myself) <= 5]
     if count my-links < random max_links and any? colleagues [
-      create-link-to one-of colleagues
+      create-link-with one-of colleagues
     ]
   ]
 
@@ -89,7 +125,7 @@ end
 
 to removelinks
   ask simuls [
-    let noncolleagues link-neighbors with [abs(IDA - [IDA] of myself) > 4]
+    let noncolleagues link-neighbors with [abs(orientation - [orientation] of myself) > 4]
     ask my-links [
       if ((end1 = myself and member? end2 noncolleagues) or (end2 = myself and member? end1 noncolleagues)) [
         die
@@ -148,8 +184,7 @@ end
 
 to disturb
   ask n-of (Agents * (%_disturbed / 100)) simuls [
-      set heading random 360
-    ask my-links [ die ]
+    ask n-of ( count my-links *  (%_SID_Disturbed / 100)) my-links [ die ]
     ]
 end
 
@@ -172,34 +207,34 @@ end
 
 to makelinksIDa
   ask simuls [
-    let colleagues other simuls with [abs(IDa - [Ida] of myself) <= 16]
+    let colleagues other simuls with [abs(IDa - [Ida] of myself) <= 10]
     if count my-links < max_links and any? colleagues [
-      create-link-to one-of colleagues
+      create-link-with one-of colleagues
     ]
   ]
 end
 
 to makelinksIDb
   ask simuls [
-    let colleagues other simuls with [abs(IDb - [Idb] of myself) <= 8]
+    let colleagues other simuls with [abs(IDb - [Idb] of myself) <= 10]
     if count my-links < max_links and any? colleagues [
-      create-link-to one-of colleagues
+      create-link-with one-of colleagues
     ]
   ]
 end
 to makelinksIDc
   ask simuls [
-    let colleagues other simuls with [abs(IDc - [Idc] of myself) <= 4]
+    let colleagues other simuls with [abs(IDc - [Idc] of myself) <= 10]
     if count my-links < max_links and any? colleagues [
-      create-link-to one-of colleagues
+      create-link-with one-of colleagues
     ]
   ]
 end
 to makelinksIDd
   ask simuls [
-    let colleagues other simuls with [abs(IDd - [Idd] of myself) <= 2]
+    let colleagues other simuls with [abs(IDd - [Idd] of myself) <= 10]
     if count my-links < max_links and any? colleagues [
-      create-link-to one-of colleagues
+      create-link-with one-of colleagues
     ]
   ]
 end
@@ -207,19 +242,49 @@ end
 ;  ask simuls [
 ;    let colleagues other simuls with [abs(IDe - [Ide] of myself) <= 1]
 ;    if count my-links < max_links and any? colleagues [
-;      create-link-to one-of colleagues
+;      create-link-with one-of colleagues
 ;    ]
 ;  ]
 ;end
 
 
-to recolor
+to recolora
   ask simuls [
     ; Calculate the mean of IDa, IDb, IDc, IDd, and IDe
     let mean-ID mean (list IDa IDb IDc IDd )
         let num-IDs 5
     ; Scale the mean value to a color gradient, assuming min-ID and max-ID are defined elsewhere
     set color scale-color green IDa 0 1000
+  ]
+end
+
+to recolorb
+  ask simuls [
+    ; Calculate the mean of IDa, IDb, IDc, IDd, and IDe
+    let mean-ID mean (list IDa IDb IDc IDd )
+        let num-IDs 5
+    ; Scale the mean value to a color gradient, assuming min-ID and max-ID are defined elsewhere
+    set color scale-color orange IDb 0 1000
+  ]
+end
+
+to recolorc
+  ask simuls [
+    ; Calculate the mean of IDa, IDb, IDc, IDd, and IDe
+    let mean-ID mean (list IDa IDb IDc IDd )
+        let num-IDs 5
+    ; Scale the mean value to a color gradient, assuming min-ID and max-ID are defined elsewhere
+    set color scale-color blue IDc 0 1000
+  ]
+end
+
+to recolord
+  ask simuls [
+    ; Calculate the mean of IDa, IDb, IDc, IDd, and IDe
+    let mean-ID mean (list IDa IDb IDc IDd )
+        let num-IDs 5
+    ; Scale the mean value to a color gradient, assuming min-ID and max-ID are defined elsewhere
+    set color scale-color white IDd 0 1000
   ]
 end
 
@@ -235,10 +300,10 @@ to recolorlinks
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-517
-54
-1233
-598
+858
+65
+1574
+609
 -1
 -1
 17.27
@@ -373,12 +438,12 @@ mean [ heading ] of simuls
 11
 
 BUTTON
-183
-215
-271
-248
+258
+69
+362
+103
 NIL
-makelinks
+makefamlinks
 T
 1
 T
@@ -390,10 +455,10 @@ NIL
 1
 
 BUTTON
-280
-215
-374
-248
+296
+216
+375
+250
 NIL
 removelinks
 T
@@ -407,10 +472,10 @@ NIL
 1
 
 BUTTON
-85
-529
-154
-562
+40
+490
+109
+523
 NIL
 Disturb
 NIL
@@ -432,17 +497,17 @@ SLIDER
 %_Disturbed
 0
 100
-5.0
+26.0
 1
 1
  %
 HORIZONTAL
 
 BUTTON
-37
-355
-112
-388
+594
+73
+669
+106
 NIL
 Teleport
 NIL
@@ -481,7 +546,7 @@ Tautness
 Tautness
 0
 1
-0.05
+0.06
 0.01
 1
 NIL
@@ -511,7 +576,7 @@ Repulsion
 Repulsion
 0
 0.1
-0.1
+0.04
 0.01
 1
 NIL
@@ -526,7 +591,7 @@ Agents
 Agents
 0
 1000
-242.0
+500.0
 1
 1
 NIL
@@ -633,12 +698,12 @@ NIL
 1
 
 BUTTON
-384
-403
-453
-436
+493
+216
+569
+250
 NIL
-recolor
+recolora
 NIL
 1
 T
@@ -682,10 +747,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-390
-469
-482
-502
+386
+372
+478
+405
 NIL
 recolorlinks
 NIL
@@ -763,6 +828,57 @@ Base_Likelihood
 1
 0
 Number
+
+BUTTON
+494
+255
+570
+289
+NIL
+recolorb
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+494
+294
+569
+328
+NIL
+recolorc
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+492
+330
+568
+364
+NIL
+recolord
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
