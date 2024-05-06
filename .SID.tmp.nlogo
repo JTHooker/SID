@@ -34,7 +34,7 @@ to go
   ]
   resize-nodes
   link_to_other_humans_with_similar_ideas
-  link_to_other_humans_with_similar_entities
+
   cut_off-nodes
   generate_ideas
   generate_entities
@@ -155,7 +155,7 @@ end
 
 to link_to_other_humans_with_similar_entities
   ask n-of 1 humans [
-    let nearby-entities entities in-radius exploration  ; Find ideas within exploration radius
+    let nearby-ideas ientities in-radius exploration  ; Find ideas within exploration radius
     ; Exclude self from linked-neighbors and ensure they are linked to nearby ideas
     let linked-neighbors map [? -> ?] sort (humans with [any? link-neighbors with [member? self nearby-entities] and self != myself])
     if not empty? linked-neighbors [  ; Check if the list is not empty

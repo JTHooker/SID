@@ -180,7 +180,6 @@ end
 
 
 
-
 to countlinks
   set linkstome count link-neighbors
 end
@@ -720,7 +719,7 @@ Perturb_ideas
 Perturb_ideas
 0
 100
-10.0
+29.0
 1
 1
 NIL
@@ -735,7 +734,7 @@ Perturb_Entities
 Perturb_Entities
 0
 100
-10.0
+29.0
 1
 1
 NIL

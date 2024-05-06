@@ -34,10 +34,15 @@ to go
   ]
   resize-nodes
   link_to_other_humans_with_similar_ideas
+  link_to_other_humans_with_similar_entities
   cut_off-nodes
   generate_ideas
+  generate_entities
   recolour_boundary_nodes
   destroy_ideas
+  destroy_entities
+  resize_turtles
+  kill_agents
   tick
   if layout? [ layout ]
 end
@@ -70,6 +75,22 @@ to generate_ideas
     ]
   ]
 end
+
+to generate_entities
+  ask n-of 1 humans [
+    if any? other humans in-radius 5 and count entities < abs (count humans * .5)  [
+      hatch-entities 1 [
+        set shape "square"
+        set color green
+        let new_entity self  ; Store the newly created idea in a variable
+        ask one-of other humans-here [
+          create-link-with new_entity [ set power 100 set link-type "entitylink"]
+        ]
+      ]
+    ]
+  ]
+end
+
 
 
 ;;preferential attachment
@@ -132,6 +153,34 @@ to link_to_other_humans_with_similar_ideas
 end
 
 
+to link_to_other_humans_with_similar_entities
+  ask n-of 1 humans [
+    let nearby-entities entities in-radius exploration  ; Find ideas within exploration radius
+    ; Exclude self from linked-neighbors and ensure they are linked to nearby ideas
+    let linked-neighbors map [? -> ?] sort (humans with [any? link-neighbors with [member? self nearby-entities] and self != myself])
+    if not empty? linked-neighbors [  ; Check if the list is not empty
+      foreach linked-neighbors [
+        the-human -> if not link-neighbor? the-human [  ; Check if not already linked
+          create-link-with the-human [ set power random 100 set link-type "humanlink"]  ; Create a link with this human
+        ]
+      ]
+    ]
+  ]
+
+  ask humans [
+    set size sqrt count link-neighbors  ; Adjust size based on the number of link-neighbors
+  ]
+end
+
+
+
+
+
+
+
+
+
+
 to countlinks
   set linkstome count link-neighbors
 end
@@ -155,11 +204,43 @@ to destroy_ideas
   ]
 
   ; Second, probabilistically remove one idea if there's more than one left
-  if count ideas > 1 and random 100 < 5 [  ; 5% chance if more than one idea remains
+  if count ideas > 1 and random 100 <  perturb_ideas[  ; 5% chance if more than one idea remains
     ask one-of ideas [ die ]  ; Randomly ask one idea to die
   ]
 end
 
+
+to destroy_entities
+  ; First, remove all entities that have no links
+  ask entities [
+    if count my-links = 0  [  ; Check if the idea has no links
+      die
+    ]
+  ]
+
+  ; Second, probabilistically remove one idea if there's more than one left
+  if count entities > 1 and random 100 < perturb_entities [  ; x% chance if more than one idea remains
+    ask one-of entities [ die ]  ; Randomly ask one idea to die
+  ]
+end
+
+to resize_turtles
+  ask turtles [ set size sqrt (count my-links) ]
+end
+
+to kill_agents
+  if mouse-down? [
+    let mx mouse-xcor  ; Get mouse x-coordinate
+    let my mouse-ycor  ; Get mouse y-coordinate
+    if (mx != nobody and my != nobody) [  ; Check if the mouse is within the world coordinates
+      ask patch mx my [  ; Ask the patch under the mouse
+        ask turtles-here [  ; Ask any turtles on this patch
+          die  ; Kill the turtle
+        ]
+      ]
+    ]
+  ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 347
@@ -629,6 +710,36 @@ count links
 17
 1
 11
+
+SLIDER
+1069
+218
+1241
+251
+Perturb_ideas
+Perturb_ideas
+0
+100
+10.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1070
+261
+1242
+294
+Perturb_Entities
+Perturb_Entities
+0
+100
+10.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
