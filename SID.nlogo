@@ -300,10 +300,10 @@ to recolorlinks
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-858
-65
-1574
-609
+697
+49
+1413
+593
 -1
 -1
 17.27
