@@ -1,3 +1,9 @@
+turtles-own [
+  prev-xcor
+  prev-ycor
+  current-speed
+]
+
 humans-own [ linkstome powerbalance happy? ]
 
 links-own [link-type power]
@@ -32,9 +38,11 @@ to go
 
 ;      ]
   ]
-  resize-nodes
+  calculate_positionresize-nodes
   link_to_other_humans_with_similar_ideas
   link_to_other_humans_with_similar_entities
+  link_entities_to_humans
+  link_humans_to_ideas
   cut_off-nodes
   generate_ideas
   generate_entities
@@ -43,9 +51,21 @@ to go
   destroy_entities
   resize_turtles
   kill_agents
+  kill-links
+  calculate_position
+  calculate_speed
   tick
   if layout? [ layout ]
+
 end
+
+to calculate_position
+   ask turtles [ if remainder ticks 2 = 0 [
+    set prev-xcor xcor  ; Initialize previous x-coordinate
+    set prev-ycor ycor  ; Initialize previous y-coordinate
+  ]]
+end
+
 
 ;; used for creating a new node
 to make-node [old-node]
@@ -65,7 +85,7 @@ to generate_ideas
   ask n-of 1 humans [
     if any? other humans in-radius 5 and count ideas < abs (count humans * .5)  [
       hatch-ideas 1 [
-        set shape "dot"
+        set shape "circle"
         set color yellow
         let new_idea self  ; Store the newly created idea in a variable
         ask one-of other humans-here [
@@ -108,14 +128,13 @@ to resize-nodes
 end
 
 to layout
-  ;; the number 3 here is arbitrary; more repetitions slows down the
-  ;; model, but too few gives poor layouts
   repeat 10 [
     ;; the more turtles we have to fit into the same amount of space,
     ;; the smaller the inputs to layout-spring we'll need to use
     let factor sqrt count humans
     ;; numbers here are arbitrarily chosen for pleasing appearance
-    layout-spring humans links with [ link-type = "humanlink" ]  0.2  2  6
+    ;;layout-spring humans links with [ link-type = "humanlink" ]  0.2  3  10
+    layout-spring turtles links  0.15  1  2
     display  ;; for smooth animation
   ]
   ;; don't bump the edges of the world
@@ -155,7 +174,7 @@ end
 
 to link_to_other_humans_with_similar_entities
   ask n-of 1 humans [
-    let nearby-entities entities in-radius exploration  ; Find ideas within exploration radius
+    let nearby-entities entities in-radius exploration_entities  ; Find ideas within exploration radius
     ; Exclude self from linked-neighbors and ensure they are linked to nearby ideas
     let linked-neighbors map [? -> ?] sort (humans with [any? link-neighbors with [member? self nearby-entities] and self != myself])
     if not empty? linked-neighbors [  ; Check if the list is not empty
@@ -167,22 +186,60 @@ to link_to_other_humans_with_similar_entities
     ]
   ]
 
-  ask humans [
-    set size sqrt count link-neighbors  ; Adjust size based on the number of link-neighbors
+end
+
+to link_entities_to_humans
+  if count entities > 1 [
+    ask n-of 1 entities [
+    let nearby-humans humans in-radius exploration  ; Find ideas within exploration radius
+    ; Exclude self from linked-neighbors and ensure they are linked to nearby ideas
+    let linked-neighbors map [? -> ?] sort (entities with [any? link-neighbors with [member? self nearby-humans] and self != myself])
+    if not empty? linked-neighbors [  ; Check if the list is not empty
+      foreach linked-neighbors [
+        the-entity -> if not link-neighbor? the-entity [  ; Check if not already linked
+          create-link-with the-entity [ set power random 100 set link-type "entitylink"]  ; Create a link with this human
+        ]
+      ]
+    ]
+  ]
   ]
 end
 
 
+to link_humans_to_ideas
+  if count ideas > 1 [
+    ask n-of 1 ideas [
+    let nearby-humans humans in-radius exploration  ; Find ideas within exploration radius
+    ; Exclude self from linked-neighbors and ensure they are linked to nearby ideas
+    let linked-neighbors map [? -> ?] sort (entities with [any? link-neighbors with [member? self nearby-humans] and self != myself])
+    if not empty? linked-neighbors [  ; Check if the list is not empty
+      foreach linked-neighbors [
+        the-idea -> if not link-neighbor? the-idea [  ; Check if not already linked
+          create-link-with the-idea [ set power random 100 set link-type "entitylink"]  ; Create a link with this human
+        ]
+      ]
+    ]
+  ]
+  ]
+end
 
-
-
-
-
+to calculate_speed
+  ask turtles [
+    set current-speed distancexy prev-xcor prev-ycor
+    ;;print (word "Turtle ID: " who " | Initial Pos: " prev-xcor ", " prev-ycor " | Current Pos: " xcor ", " ycor " | Speed: " current-speed)
+  ]
+end
 
 
 to countlinks
   set linkstome count link-neighbors
 end
+
+
+to recolour_boundary_nodes
+  ask humans [ ifelse count my-links = 1 [ set color blue ] [ set color red ] ]
+end
+
 
 ;; Disaster settings
 
@@ -190,9 +247,7 @@ to cut_off-nodes
   if count humans > 1 and 5 > random 100 [ ask one-of humans [ die ]]
 end
 
-to recolour_boundary_nodes
-  ask humans [ ifelse count my-links = 1 [ set color blue ] [ set color red ] ]
-end
+
 
 to destroy_ideas
   ; First, remove all ideas that have no links
@@ -227,6 +282,7 @@ to resize_turtles
   ask turtles [ set size sqrt (count my-links) ]
 end
 
+
 to kill_agents
   if mouse-down? [
     let mx mouse-xcor  ; Get mouse x-coordinate
@@ -240,6 +296,69 @@ to kill_agents
     ]
   ]
 end
+
+to kill-links
+  if mouse-down? [
+    let mx mouse-xcor  ; Get the mouse x-coordinate
+    let my mouse-ycor  ; Get the mouse y-coordinate
+    if (mx != nobody and my != nobody) [  ; Check if the mouse is within the world
+      ask links [
+        ; Get the x and y coordinates of the endpoints
+        let x1 [xcor] of end1
+        let y1 [ycor] of end1
+        let x2 [xcor] of end2
+        let y2 [ycor] of end2
+
+        ; Calculate the distance from the mouse to the line segment
+        let d distance-to-line (list x1 y1) (list x2 y2) (list mx my)
+
+        ; Check if the mouse click is close enough to the link
+        if d < 1 [  ; You can adjust this threshold to suit your interface scale
+          die  ; Kill the link if the mouse is close enough
+        ]
+      ]
+    ]
+  ]
+end
+
+; Helper function to calculate distance from a point to a line segment
+to-report distance-to-line [p1 p2 p0]
+  ; p1 and p2 are endpoints of the line segment, p0 is the point (mx, my)
+  let x0 first p0
+  let y0 last p0
+  let x1 first p1
+  let y1 last p1
+  let x2 first p2
+  let y2 last p2
+  let A y2 - y1
+  let B x1 - x2
+  let C x2 * y1 - x1 * y2
+  let denominator sqrt(A ^ 2 + B ^ 2)
+
+  ; Check if the denominator is zero, which means endpoints are the same or too close
+  if denominator = 0 [
+    ; Return a large number or handle differently, since the point is effectively at the endpoint
+    report max-pxcor ;
+  ]
+
+  report (abs(A * x0 + B * y0 + C)) / denominator
+end
+
+
+
+
+;;;measures of the network
+
+to-report network-density
+  report (count links) / (count turtles * (count turtles - 1) / 2)
+end
+
+to-report degree-centrality
+  report map [count link-neighbors / (count turtles - 1)] sort turtles
+end
+
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 347
@@ -302,7 +421,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 1 -16777216 true "" "if not plot? [ stop ]\nlet max-degree max [count link-neighbors] of turtles\nplot-pen-reset  ;; erase what we plotted before\nset-plot-x-range 1 (max-degree + 1)  ;; + 1 to make room for the width of the last bar\nhistogram [count link-neighbors] of turtles"
+"default" 1.0 1 -16777216 true "" "if not plot? [ stop ]\nlet max-degree max [count link-neighbors] of humans\nplot-pen-reset  ;; erase what we plotted before\nset-plot-x-range 1 (max-degree + 1)  ;; + 1 to make room for the width of the last bar\nhistogram [count link-neighbors] of humans"
 
 BUTTON
 6
@@ -424,21 +543,6 @@ NIL
 
 SLIDER
 833
-40
-1005
-73
-Diffusion_level
-Diffusion_level
-0
-1
-1.0
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
-833
 79
 1005
 112
@@ -451,41 +555,6 @@ Exploration
 1
 NIL
 HORIZONTAL
-
-BUTTON
-835
-137
-944
-170
-Launch AGI
-LaunchAGIs
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-PLOT
-847
-215
-1051
-360
-Elevation
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "plot mean [ elevation ] of humans * 10"
 
 SLIDER
 8
@@ -520,50 +589,11 @@ false
 PENS
 "default" 1.0 1 -16777216 true "" "if not plot? [ stop ]\nlet max-degree max [count link-neighbors] of humans\nplot-pen-reset  ;; erase what we plotted before\nset-plot-x-range 1 (max-degree + 1)  ;; + 1 to make room for the width of the last bar\nhistogram [count link-neighbors] of humans"
 
-INPUTBOX
-953
-376
-1019
-436
-New_AGIs
-1.0
-1
-0
-Number
-
-BUTTON
-951
-137
-1059
-170
-Kill an AGI
-ask one-of AGIs [ die ] 
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-MONITOR
-848
-379
-940
-424
-Count of AGIs
-count AGIs
-0
-1
-11
-
 SLIDER
-853
-452
-1025
-485
+833
+119
+1005
+152
 LinkNumber
 LinkNumber
 0
@@ -573,58 +603,6 @@ LinkNumber
 1
 NIL
 HORIZONTAL
-
-PLOT
-347
-547
-655
-707
-Elevation Histogram
-NIL
-NIL
-0.0
-1.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"default" 0.01 1 -16777216 true "" "if not plot? [ stop ]\nplot-pen-reset  ;; erase what we plotted before\nhistogram [ elevation ] of humans"
-
-BUTTON
-836
-178
-944
-211
-NIL
-moveAGIdown
-NIL
-1
-T
-TURTLE
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-951
-179
-1060
-212
-NIL
-moveAGIup
-NIL
-1
-T
-TURTLE
-NIL
-NIL
-NIL
-NIL
-1
 
 TEXTBOX
 1156
@@ -637,10 +615,10 @@ Ossification / Stability of the network\nentrenchment\nstability / strength of l
 1
 
 SLIDER
-854
-491
-1026
-524
+834
+158
+1006
+191
 Expunge
 Expunge
 0
@@ -650,43 +628,6 @@ Expunge
 1
 NIL
 HORIZONTAL
-
-SLIDER
-855
-528
-1027
-561
-AGI_Alignment
-AGI_Alignment
-0
-1
-0.9
-0.01
-1
-NIL
-HORIZONTAL
-
-SWITCH
-360
-495
-522
-528
-Show_AGI_Elevation
-Show_AGI_Elevation
-1
-1
--1000
-
-SWITCH
-538
-495
-642
-528
-AGI_Drift
-AGI_Drift
-0
-1
--1000
 
 MONITOR
 271
@@ -711,34 +652,85 @@ count links
 11
 
 SLIDER
-1069
-218
-1241
-251
+834
+239
+1006
+272
 Perturb_ideas
 Perturb_ideas
 0
 100
-29.0
+4.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-1070
-261
-1242
-294
+835
+282
+1007
+315
 Perturb_Entities
 Perturb_Entities
 0
 100
-29.0
+6.0
 1
 1
 NIL
 HORIZONTAL
+
+SLIDER
+834
+29
+1006
+62
+Exploration_Entities
+Exploration_Entities
+0
+100
+10.0
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+837
+327
+1037
+477
+Network Density
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot network-density * 100"
+
+PLOT
+1088
+378
+1288
+528
+Speed
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot mean [ current-speed ] of humans * 10"
 
 @#$#@#$#@
 ## WHAT IS IT?
