@@ -1,13 +1,17 @@
+extensions [nw]
 turtles-own [
   prev-xcor
   prev-ycor
   current-speed
+  community
 ]
 
 humans-own [ linkstome powerbalance happy? ]
+undirected-link-breed [ humanlinks humanlink ]
+undirected-link-breed [ hidealinks hidealink ]
+undirected-link-breed [ entitylinks entitylink ]
 
 links-own [link-type power]
-
 
 breed [ humans human ]
 breed [ entities entity ]
@@ -38,7 +42,8 @@ to go
 
 ;      ]
   ]
-  calculate_positionresize-nodes
+  calculate_position
+  resize-nodes
   link_to_other_humans_with_similar_ideas
   link_to_other_humans_with_similar_entities
   link_entities_to_humans
@@ -52,18 +57,18 @@ to go
   resize_turtles
   kill_agents
   kill-links
-  calculate_position
-  calculate_speed
-  tick
   if layout? [ layout ]
-
+  tick
+  calculate_speed
+  checkcommunities
+  ;colorcommunities
 end
 
 to calculate_position
-   ask turtles [ if remainder ticks 2 = 0 [
+   ask turtles [
     set prev-xcor xcor  ; Initialize previous x-coordinate
     set prev-ycor ycor  ; Initialize previous y-coordinate
-  ]]
+  ]
 end
 
 
@@ -74,7 +79,7 @@ to make-node [old-node]
     set color red
     set happy? true
     if old-node != nobody
-      [ create-link-with old-node [ set color green set power random 100 set link-type "humanlink"]
+      [ create-humanlink-with old-node [ set color green set power random 100 ]
         ;;move-to old-node
         fd random Exploration
       ]
@@ -83,13 +88,13 @@ end
 
 to generate_ideas
   ask n-of 1 humans [
-    if any? other humans in-radius 5 and count ideas < abs (count humans * .5)  [
+    if any? other humans in-radius exploration and count ideas < abs (count humans * .5)  [
       hatch-ideas 1 [
-        set shape "circle"
+        set shape "triangle"
         set color yellow
         let new_idea self  ; Store the newly created idea in a variable
         ask one-of other humans-here [
-          create-link-with new_idea [ set power 100 set link-type "idealink"]
+          create-hidealink-with new_idea [ set power 100 ]
         ]
       ]
     ]
@@ -98,13 +103,14 @@ end
 
 to generate_entities
   ask n-of 1 humans [
-    if any? other humans in-radius 5 and count entities < abs (count humans * .5)  [
+    if any? other humans in-radius exploration_entities and count entities < abs (count humans * .5)  [
       hatch-entities 1 [
         set shape "square"
         set color green
         let new_entity self  ; Store the newly created idea in a variable
         ask one-of other humans-here [
-          create-link-with new_entity [ set power 100 set link-type "entitylink"]
+          create-entitylink-with new_entity [ set power 100 ]
+
         ]
       ]
     ]
@@ -124,7 +130,7 @@ end
 
 ;; resize-nodes, change back and forth from size based on degree to a size of 1
 to resize-nodes
-    ask humans [ set size sqrt count link-neighbors ]
+    ask humans [ set size sqrt count humanlink-neighbors ]
 end
 
 to layout
@@ -133,8 +139,7 @@ to layout
     ;; the smaller the inputs to layout-spring we'll need to use
     let factor sqrt count humans
     ;; numbers here are arbitrarily chosen for pleasing appearance
-    ;;layout-spring humans links with [ link-type = "humanlink" ]  0.2  3  10
-    layout-spring turtles links  0.15  1  2
+    layout-spring turtles links    1  5
     display  ;; for smooth animation
   ]
   ;; don't bump the edges of the world
@@ -160,7 +165,7 @@ to link_to_other_humans_with_similar_ideas
     if not empty? linked-neighbors [  ; Check if the list is not empty
       foreach linked-neighbors [
         the-human -> if not link-neighbor? the-human [  ; Check if not already linked
-          create-link-with the-human [ set power random 100 set link-type "humanlink"]  ; Create a link with this human
+          create-humanlink-with the-human [ set power random 100 ]  ; Create a link with this human
         ]
       ]
     ]
@@ -180,7 +185,7 @@ to link_to_other_humans_with_similar_entities
     if not empty? linked-neighbors [  ; Check if the list is not empty
       foreach linked-neighbors [
         the-human -> if not link-neighbor? the-human [  ; Check if not already linked
-          create-link-with the-human [ set power random 100 set link-type "humanlink"]  ; Create a link with this human
+          create-humanlink-with the-human [ set power random 100 set link-type "humanlink"]  ; Create a link with this human
         ]
       ]
     ]
@@ -197,7 +202,7 @@ to link_entities_to_humans
     if not empty? linked-neighbors [  ; Check if the list is not empty
       foreach linked-neighbors [
         the-entity -> if not link-neighbor? the-entity [  ; Check if not already linked
-          create-link-with the-entity [ set power random 100 set link-type "entitylink"]  ; Create a link with this human
+          create-entitylink-with the-entity [ set power random 100 set link-type "humanentitylink"]  ; Create a link with this human
         ]
       ]
     ]
@@ -215,7 +220,7 @@ to link_humans_to_ideas
     if not empty? linked-neighbors [  ; Check if the list is not empty
       foreach linked-neighbors [
         the-idea -> if not link-neighbor? the-idea [  ; Check if not already linked
-          create-link-with the-idea [ set power random 100 set link-type "entitylink"]  ; Create a link with this human
+          create-hidealink-with the-idea [ set power random 100 set link-type "entitylink"]  ; Create a link with this human
         ]
       ]
     ]
@@ -240,11 +245,10 @@ to recolour_boundary_nodes
   ask humans [ ifelse count my-links = 1 [ set color blue ] [ set color red ] ]
 end
 
-
 ;; Disaster settings
 
 to cut_off-nodes
-  if count humans > 1 and 5 > random 100 [ ask one-of humans [ die ]]
+  if count humans > 1 and death_rate > random 100 [ ask one-of humans [ die ]]
 end
 
 
@@ -267,7 +271,7 @@ end
 to destroy_entities
   ; First, remove all entities that have no links
   ask entities [
-    if count my-links = 0  [  ; Check if the idea has no links
+    if count my-entitylinks = 0  [  ; Check if the idea has no links
       die
     ]
   ]
@@ -279,7 +283,7 @@ to destroy_entities
 end
 
 to resize_turtles
-  ask turtles [ set size sqrt (count my-links) ]
+  ask turtles [ set size sqrt (count (my-links)) ]
 end
 
 
@@ -344,9 +348,6 @@ to-report distance-to-line [p1 p2 p0]
   report (abs(A * x0 + B * y0 + C)) / denominator
 end
 
-
-
-
 ;;;measures of the network
 
 to-report network-density
@@ -357,6 +358,47 @@ to-report degree-centrality
   report map [count link-neighbors / (count turtles - 1)] sort turtles
 end
 
+
+;::::::::::::::::::::REPORTING:::::::::::::::::::::::::::::::
+
+
+to checkcommunities
+  foreach nw:louvain-communities [ [comm] ->
+    ask comm [ set community comm ] ]
+
+end
+
+to community-detection ;detect community using the louvain method
+  color-clusters nw:louvain-communities
+end
+
+to color-clusters [ clusters ] ;assignment of a color for each cluster
+  let n length clusters
+  let hues n-values n [ i -> (360 * i / n) ]
+  (foreach clusters hues [ [cluster hue] ->
+    ask cluster [
+      set color hsb hue 100 100
+      ask my-links with [ member? other-end cluster ] [ set color hsb hue 100 75 ]]])
+end
+
+
+
+
+
+to color-communities
+;  let communities nw:louvain-communities  ; Assumes this returns a list of agentsets
+;  let num_colors length base-colors
+;  let required_colors min (list length communities num_colors)
+;
+;  ; Ensure sublist is appropriately constructed
+;  let colors sublist base-colors 0 required_colors
+;
+;  ; Apply colors to each community
+;  foreach communities colors [
+;    [community col] ->
+;    ask community [ set color col ]
+;  ]
+end
 
 
 @#$#@#$#@
@@ -374,8 +416,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
+1
+1
 1
 -45
 45
@@ -499,9 +541,9 @@ layout?
 MONITOR
 185
 498
-264
+271
 543
-# of nodes
+# of humans
 count humans
 3
 1
@@ -524,23 +566,6 @@ NIL
 NIL
 0
 
-BUTTON
-115
-102
-225
-135
-Cut off nodes
-cut_off-nodes
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-0
-
 SLIDER
 833
 79
@@ -549,7 +574,7 @@ SLIDER
 Exploration
 Exploration
 0
-45
+20
 5.0
 1
 1
@@ -598,32 +623,7 @@ LinkNumber
 LinkNumber
 0
 100
-1.0
-1
-1
-NIL
-HORIZONTAL
-
-TEXTBOX
-1156
-67
-1467
-203
-Ossification / Stability of the network\nentrenchment\nstability / strength of links
-10
 0.0
-1
-
-SLIDER
-834
-158
-1006
-191
-Expunge
-Expunge
-0
-50
-1.0
 1
 1
 NIL
@@ -634,7 +634,7 @@ MONITOR
 499
 349
 544
-NIL
+# ideas
 count ideas
 0
 1
@@ -652,30 +652,30 @@ count links
 11
 
 SLIDER
-834
-239
-1006
-272
+832
+158
+1004
+191
 Perturb_ideas
 Perturb_ideas
 0
 100
-4.0
+5.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-835
-282
-1007
-315
+833
+194
+1005
+227
 Perturb_Entities
 Perturb_Entities
 0
 100
-6.0
+5.0
 1
 1
 NIL
@@ -689,18 +689,18 @@ SLIDER
 Exploration_Entities
 Exploration_Entities
 0
-100
-10.0
+20
+5.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-837
-327
-1037
-477
+1105
+27
+1305
+177
 Network Density
 NIL
 NIL
@@ -715,11 +715,11 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot network-density * 100"
 
 PLOT
-1088
-378
-1288
-528
-Speed
+830
+275
+1062
+448
+Disturbance
 NIL
 NIL
 0.0
@@ -731,6 +731,122 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot mean [ current-speed ] of humans * 10"
+
+BUTTON
+581
+476
+644
+509
+NIL
+Drag
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+355
+499
+416
+544
+# Entities
+count entities
+17
+1
+11
+
+MONITOR
+1020
+170
+1094
+215
+Link Power
+mean [ power ] of links
+17
+1
+11
+
+SLIDER
+831
+232
+1003
+265
+Death_rate
+Death_rate
+0
+100
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+413
+477
+554
+510
+NIL
+community-detection
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+1108
+183
+1280
+216
+Constant
+Constant
+0
+0.5
+0.06
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1108
+218
+1280
+251
+Spring
+Spring
+0
+10
+10.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1108
+255
+1280
+288
+Repulsion
+Repulsion
+0
+10
+10.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
