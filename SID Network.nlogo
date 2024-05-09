@@ -885,7 +885,7 @@ Constant
 Constant
 0
 1
-0.1
+0.13
 0.01
 1
 NIL
@@ -900,7 +900,7 @@ Length_
 Length_
 0
 10
-3.2
+2.0
 0.1
 1
 NIL
@@ -915,7 +915,7 @@ Repulsion
 Repulsion
 0
 20
-5.1
+5.9
 0.1
 1
 NIL
@@ -928,7 +928,7 @@ SWITCH
 464
 Community-detection
 Community-detection
-1
+0
 1
 -1000
 
@@ -1121,6 +1121,27 @@ H7
 10
 0.0
 1
+
+TEXTBOX
+1291
+225
+1358
+243
+H13 - Meaning
+10
+0.0
+1
+
+MONITOR
+217
+103
+334
+148
+Number of groups
+length nw:louvain-communities
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?

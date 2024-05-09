@@ -67,6 +67,7 @@ to go
   labelagents
   move_antagonist
   closeranks
+  analyse-clusters
 end
 
 to calculate_position
@@ -318,6 +319,24 @@ to Creativity_Hypothesis
       ]
     ]
 end
+
+to analyse-clusters ;H8
+  let clusters nw:louvain-communities
+  show (word "Number of clusters: " length clusters)  ; Count clusters
+
+  ; Iterate over each cluster to calculate average positions and other properties
+  foreach clusters [
+    [cluster] ->
+    let avg-x mean [xcor] of cluster
+    let avg-y mean [ycor] of cluster
+    show (word "Average position of cluster: " avg-x ", " avg-y)
+
+    ; Example: Calculate other properties like average size
+    let avg-size mean [size] of cluster
+    show (word "Average size of cluster: " avg-size)
+  ]
+end
+
 
 
 ;; Disaster settings ####################################################################################
@@ -866,7 +885,7 @@ Constant
 Constant
 0
 1
-0.1
+0.13
 0.01
 1
 NIL
@@ -881,7 +900,7 @@ Length_
 Length_
 0
 10
-3.2
+2.0
 0.1
 1
 NIL
@@ -896,7 +915,7 @@ Repulsion
 Repulsion
 0
 20
-5.1
+5.9
 0.1
 1
 NIL
@@ -909,7 +928,7 @@ SWITCH
 464
 Community-detection
 Community-detection
-1
+0
 1
 -1000
 
@@ -1102,6 +1121,27 @@ H7
 10
 0.0
 1
+
+TEXTBOX
+1291
+225
+1358
+243
+H13 - Meaning
+10
+0.0
+1
+
+MONITOR
+1132
+415
+1249
+460
+Number of groups
+let clusters nw:louvain-communities\n  show (word \"Number of clusters: \" length clusters)
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
