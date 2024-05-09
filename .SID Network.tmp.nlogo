@@ -282,6 +282,42 @@ to closeranks
   ]
 end
 
+;H5
+to leave_group
+  ask humans [
+    let sum_position sum (list xcor ycor)
+    if sum_position < 0 and count my-humanlinks > 2 [
+      ; Directly ask all links meeting the condition to die
+      ask my-humanlinks with [power > Mobility] [
+        die
+        print "leaving"
+      ]
+    ]
+  ]
+end
+
+;H4
+to Restore_Identity
+   ask entities [
+    let sum_position sum (list xcor ycor)
+    if sum_position < Discrimination_Point  [
+      ; Directly ask all links meeting the condition to die
+     set heading 45 + random 45 - random 45 fd random 5 print "H4"
+      ]
+    ]
+end
+
+;H6 Creativity
+
+to Creativity_Hypothesis
+   ask ideas [
+    let sum_position sum (list xcor ycor)
+    if sum_position < Discrimination_Point  [
+      ; Directly ask all links meeting the condition to die
+     set heading 45 + random 45 - random 45 fd random 5 print "H4"
+      ]
+    ]
+end
 
 
 ;; Disaster settings ####################################################################################
@@ -289,6 +325,7 @@ end
 to cut_off-nodes
   if count humans > 1 and death_rate > random 100 [ ask one-of humans [ die ]]
 end
+
 
 
 
@@ -657,7 +694,7 @@ LinkNumber
 LinkNumber
 0
 100
-0.0
+3.0
 1
 1
 NIL
@@ -675,10 +712,10 @@ count ideas
 11
 
 MONITOR
-865
-482
-938
-527
+758
+10
+831
+55
 NIL
 count links
 17
@@ -767,10 +804,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot mean [ current-speed ] of humans * 10"
 
 BUTTON
-485
-478
-548
-511
+427
+473
+490
+506
 NIL
 Drag
 T
@@ -910,17 +947,6 @@ NIL
 NIL
 1
 
-MONITOR
-421
-533
-571
-578
-NIL
-count (community)
-17
-1
-11
-
 TEXTBOX
 1115
 330
@@ -960,10 +986,10 @@ NIL
 1
 
 BUTTON
-555
-479
-681
-512
+497
+474
+623
+507
 Launch antagonist
 ask n-of 1 patches [ sprout-antagonists 1 [ set size 5 set color white ]] 
 NIL
@@ -982,6 +1008,97 @@ TEXTBOX
 1450
 350
 Divide and conquer
+10
+0.0
+1
+
+BUTTON
+428
+518
+545
+551
+Leave_Group H5
+Leave_group
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+548
+518
+651
+551
+Mobility
+Mobility
+0
+100
+11.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+625
+474
+760
+507
+Restore_Identity H4
+Restore_Identity
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+654
+518
+752
+551
+Creativity H6
+Creativity_Hypothesis
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+768
+474
+940
+507
+Discrimination_Point
+Discrimination_Point
+-100
+100
+1.0
+1
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+849
+462
+864
+480
+H7
 10
 0.0
 1
