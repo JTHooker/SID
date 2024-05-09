@@ -6,16 +6,19 @@ turtles-own [
   community
 ]
 
+globals [ recolor-done ]
+
 humans-own [ linkstome powerbalance happy? ]
 undirected-link-breed [ humanlinks humanlink ]
 undirected-link-breed [ hidealinks hidealink ]
 undirected-link-breed [ entitylinks entitylink ]
 
-links-own [link-type power]
+links-own [link-type power ]
 
 breed [ humans human ]
 breed [ entities entity ]
 breed [ ideas idea ]
+breed [ antagonists antagonist ]
 
 
 to setup
@@ -24,6 +27,7 @@ to setup
   ;; make the initial network of two turtles and an edge
   make-node nobody        ;; first node, unattached
   make-node turtle 0      ;; second node, attached to first node
+  set recolor-done false
   reset-ticks
 end
 
@@ -55,13 +59,14 @@ to go
   destroy_ideas
   destroy_entities
   resize_turtles
-  kill_agents
-  kill-links
   if layout? [ layout ]
   tick
   calculate_speed
   checkcommunities
-  ;colorcommunities
+  toggle-community-detection
+  labelagents
+  move_antagonist
+  closeranks
 end
 
 to calculate_position
@@ -74,7 +79,7 @@ end
 
 ;; used for creating a new node
 to make-node [old-node]
-  if count humans with [ color = red ] < max_humans [  create-humans 1
+  if count humans < max_humans [  create-humans 1
   [
     set color red
     set happy? true
@@ -139,7 +144,9 @@ to layout
     ;; the smaller the inputs to layout-spring we'll need to use
     let factor sqrt count humans
     ;; numbers here are arbitrarily chosen for pleasing appearance
-    layout-spring turtles links    1  5
+    layout-spring humans links  Constant Length_  Repulsion
+    layout-spring ideas links Constant Length_  Repulsion
+    layout-spring entities links Constant Length_  Repulsion
     display  ;; for smooth animation
   ]
   ;; don't bump the edges of the world
@@ -242,10 +249,42 @@ end
 
 
 to recolour_boundary_nodes
-  ask humans [ ifelse count my-links = 1 [ set color blue ] [ set color red ] ]
+  ifelse community-detection = false [
+    ; Community detection is off, do the simple coloring
+    ask humans [ ifelse count my-links = 1 [ set color blue ] [ set color red ] ]
+    ask entities [ set color green ]
+    ask ideas [ set color yellow ]
+  ] [
+    ; Community detection is on, do it only once
+    if not recolor-done [
+      color-clusters nw:louvain-communities
+      set recolor-done true  ; Set the flag to prevent re-running
+    ]
+  ]
 end
 
-;; Disaster settings
+to toggle-community-detection
+  if community-detection = false [
+    set recolor-done false ] ; Reset recoloring flag when toggling the condition
+end
+
+to move_antagonist
+  if count antagonists > 0 [ ask antagonists [
+    fd 1 set heading (heading + random 45 - random 45) set color white ]]
+end
+
+to closeranks
+  let affected-humans humans with [any? antagonists in-radius 5]
+  ask affected-humans [
+    ; Modify link attributes or set a flag for special handling
+        ; Perform layout adjustment on this human and its direct neighbors
+   layout-spring affected-humans links (Constant * 10) (Length_ / 10)  ( Repulsion / 10 )
+  ]
+end
+
+
+
+;; Disaster settings ####################################################################################
 
 to cut_off-nodes
   if count humans > 1 and death_rate > random 100 [ ask one-of humans [ die ]]
@@ -283,11 +322,16 @@ to destroy_entities
 end
 
 to resize_turtles
-  ask turtles [ set size sqrt (count (my-links)) ]
+  ; Ask every turtle except antagonists to resize
+  ask (turtles with [breed != antagonists]) [
+    set size sqrt(count my-links)
+  ]
 end
 
 
-to kill_agents
+
+
+to destroy_agents
   if mouse-down? [
     let mx mouse-xcor  ; Get mouse x-coordinate
     let my mouse-ycor  ; Get mouse y-coordinate
@@ -302,7 +346,7 @@ to kill_agents
 end
 
 to kill-links
-  if mouse-down? [
+  if mouse-down?  [
     let mx mouse-xcor  ; Get the mouse x-coordinate
     let my mouse-ycor  ; Get the mouse y-coordinate
     if (mx != nobody and my != nobody) [  ; Check if the mouse is within the world
@@ -368,10 +412,6 @@ to checkcommunities
 
 end
 
-to community-detection ;detect community using the louvain method
-  color-clusters nw:louvain-communities
-end
-
 to color-clusters [ clusters ] ;assignment of a color for each cluster
   let n length clusters
   let hues n-values n [ i -> (360 * i / n) ]
@@ -381,23 +421,17 @@ to color-clusters [ clusters ] ;assignment of a color for each cluster
       ask my-links with [ member? other-end cluster ] [ set color hsb hue 100 75 ]]])
 end
 
+to-report modularity ;measure modularity related to grey and red members
+  report nw:modularity (list (humans) (ideas) (entities))
+end
 
-
-
-
-to color-communities
-;  let communities nw:louvain-communities  ; Assumes this returns a list of agentsets
-;  let num_colors length base-colors
-;  let required_colors min (list length communities num_colors)
+;to eigenvector ;as the simulations represent the spread of a concept (due to the placement of beliefs) eigenvector centrality is represented by the inverse of its original sense
+;  centrality [ ->  nw:eigenvector-centrality ]
+;end
 ;
-;  ; Ensure sublist is appropriately constructed
-;  let colors sublist base-colors 0 required_colors
-;
-;  ; Apply colors to each community
-;  foreach communities colors [
-;    [community col] ->
-;    ask community [ set color col ]
-;  ]
+
+to labelagents
+  ;ask humans [ set label community ]
 end
 
 
@@ -405,11 +439,11 @@ end
 GRAPHICS-WINDOW
 347
 10
-810
-474
+758
+422
 -1
 -1
-5.0
+4.43
 1
 10
 1
@@ -590,7 +624,7 @@ max_humans
 max_humans
 0
 1000
-100.0
+150.0
 1
 1
 NIL
@@ -641,10 +675,10 @@ count ideas
 11
 
 MONITOR
-701
-491
-774
-536
+865
+482
+938
+527
 NIL
 count links
 17
@@ -660,7 +694,7 @@ Perturb_ideas
 Perturb_ideas
 0
 100
-5.0
+3.0
 1
 1
 NIL
@@ -675,7 +709,7 @@ Perturb_Entities
 Perturb_Entities
 0
 100
-5.0
+3.0
 1
 1
 NIL
@@ -733,10 +767,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot mean [ current-speed ] of humans * 10"
 
 BUTTON
-581
-476
-644
-509
+485
+478
+548
+511
 NIL
 Drag
 T
@@ -780,28 +814,11 @@ Death_rate
 Death_rate
 0
 100
-3.0
+5.0
 1
 1
 NIL
 HORIZONTAL
-
-BUTTON
-413
-477
-554
-510
-NIL
-community-detection
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 SLIDER
 1108
@@ -811,8 +828,8 @@ SLIDER
 Constant
 Constant
 0
-0.5
-0.06
+1
+0.1
 0.01
 1
 NIL
@@ -823,12 +840,12 @@ SLIDER
 218
 1280
 251
-Spring
-Spring
+Length_
+Length_
 0
 10
-10.0
-1
+3.2
+0.1
 1
 NIL
 HORIZONTAL
@@ -841,12 +858,133 @@ SLIDER
 Repulsion
 Repulsion
 0
-10
-10.0
-1
+20
+5.1
+0.1
 1
 NIL
 HORIZONTAL
+
+SWITCH
+349
+431
+514
+464
+Community-detection
+Community-detection
+1
+1
+-1000
+
+BUTTON
+517
+431
+618
+464
+Destroy Links
+kill-links
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+621
+431
+732
+464
+Destroy Agents
+destroy_agents
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+421
+533
+571
+578
+NIL
+count (community)
+17
+1
+11
+
+TEXTBOX
+1115
+330
+1265
+369
+Closing ranks in response to threats - this is a social selfish herd
+10
+0.0
+1
+
+MONITOR
+1019
+28
+1090
+73
+Modularity
+modularity
+17
+1
+11
+
+BUTTON
+1107
+295
+1238
+328
+Measure Centrality
+eigenvector
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+555
+479
+681
+512
+Launch antagonist
+ask n-of 1 patches [ sprout-antagonists 1 [ set size 5 set color white ]] 
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+1300
+332
+1450
+350
+Divide and conquer
+10
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
