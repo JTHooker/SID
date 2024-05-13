@@ -67,6 +67,7 @@ to go
   labelagents
   move_antagonist
   closeranks
+ ; closeranks2
   analyse-clusters
 end
 
@@ -283,6 +284,26 @@ to closeranks
   ]
 end
 
+to closeranks2
+  ; Get the list of communities using nw:louvain-communities
+  let communities nw:louvain-communities
+  if not empty? communities [
+    ; Randomly select one community to act as the source of antagonists
+    let antagonist-community one-of communities
+
+    ; Define all humans within a radius of 5 units from any agent in the antagonist community
+    let affected-humans humans with [any? other turtles in-radius 5 with [member? self antagonist-community]]
+
+    ; Apply layout adjustment to affected humans
+    ask affected-humans [
+      let relevant-agents (turtle-set self link-neighbors)
+      layout-spring relevant-agents links (Constant * 10) (Length_ / 10) (Repulsion / 10)
+    ]
+  ]
+end
+
+
+
 ;H5
 to leave_group
   ask humans [
@@ -383,8 +404,6 @@ to resize_turtles
     set size sqrt(count my-links)
   ]
 end
-
-
 
 
 to destroy_agents
@@ -750,7 +769,7 @@ Perturb_ideas
 Perturb_ideas
 0
 100
-3.0
+13.0
 1
 1
 NIL
@@ -765,7 +784,7 @@ Perturb_Entities
 Perturb_Entities
 0
 100
-3.0
+13.0
 1
 1
 NIL
@@ -870,7 +889,7 @@ Death_rate
 Death_rate
 0
 100
-5.0
+17.0
 1
 1
 NIL
@@ -885,7 +904,7 @@ Constant
 Constant
 0
 1
-0.13
+0.2
 0.01
 1
 NIL
@@ -900,7 +919,7 @@ Length_
 Length_
 0
 10
-2.0
+1.2
 0.1
 1
 NIL
@@ -915,7 +934,7 @@ Repulsion
 Repulsion
 0
 20
-5.9
+5.0
 0.1
 1
 NIL
@@ -1049,15 +1068,15 @@ NIL
 1
 
 SLIDER
-548
-518
-651
-551
+433
+553
+536
+586
 Mobility
 Mobility
 0
 100
-11.0
+50.0
 1
 1
 NIL
