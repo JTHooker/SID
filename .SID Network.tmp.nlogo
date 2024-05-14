@@ -67,7 +67,7 @@ to go
   labelagents
   move_antagonist
   closeranks
- ; closeranks2
+  polarise
   analyse-clusters
 end
 
@@ -284,21 +284,18 @@ to closeranks
   ]
 end
 
-to closeranks2
+to polarise
   ; Get the list of communities using nw:louvain-communities
-  let communities nw:louvain-communities
+  let communities nw:louvain-communities print "got communities"
   if not empty? communities [
     ; Randomly select one community to act as the source of antagonists
-    let antagonist-community one-of communities
+    let antagonist-community communities print "not empty"
 
     ; Define all humans within a radius of 5 units from any agent in the antagonist community
-    let affected-humans humans with [any? other turtles in-radius 5 with [member? self antagonist-community]]
+    let affected-humans humans with [any? other humans in-radius 2 with [member? self antagonist-community] ]
 
-    ; Apply layout adjustment to affected humans
-    ask affected-humans [
-      let relevant-agents (turtle-set self link-neighbors)
-      layout-spring relevant-agents links (Constant * 10) (Length_ / 10) (Repulsion / 10)
-    ]
+    layout-spring affected-humans links (Constant * 10) (Length_ / 10) (Repulsion / 10) print "working_closeranks2"
+
   ]
 end
 
@@ -365,7 +362,6 @@ end
 to cut_off-nodes
   if count humans > 1 and death_rate > random 100 [ ask one-of humans [ die ]]
 end
-
 
 
 
@@ -508,7 +504,6 @@ end
 to labelagents
   ;ask humans [ set label community ]
 end
-
 
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -658,23 +653,6 @@ count humans
 1
 11
 
-BUTTON
-7
-102
-109
-135
-redo layout
-layout
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-0
-
 SLIDER
 833
 79
@@ -769,7 +747,7 @@ Perturb_ideas
 Perturb_ideas
 0
 100
-13.0
+2.0
 1
 1
 NIL
@@ -784,7 +762,7 @@ Perturb_Entities
 Perturb_Entities
 0
 100
-13.0
+2.0
 1
 1
 NIL
@@ -889,7 +867,7 @@ Death_rate
 Death_rate
 0
 100
-17.0
+5.0
 1
 1
 NIL
@@ -904,7 +882,7 @@ Constant
 Constant
 0
 1
-0.16
+0.2
 0.01
 1
 NIL
@@ -934,7 +912,7 @@ Repulsion
 Repulsion
 0
 20
-6.0
+5.0
 0.1
 1
 NIL
@@ -947,7 +925,7 @@ SWITCH
 464
 Community-detection
 Community-detection
-1
+0
 1
 -1000
 
@@ -1076,7 +1054,7 @@ Mobility
 Mobility
 0
 100
-50.0
+24.0
 1
 1
 NIL
@@ -1125,7 +1103,7 @@ Discrimination_Point
 Discrimination_Point
 -100
 100
-1.0
+-52.0
 1
 1
 NIL
