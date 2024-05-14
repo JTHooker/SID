@@ -6,7 +6,10 @@ turtles-own [
   community
 ]
 
-globals [ recolor-done ]
+globals [
+  recolor-done
+  selected
+]
 
 humans-own [ linkstome powerbalance happy? ]
 undirected-link-breed [ humanlinks humanlink ]
@@ -27,7 +30,8 @@ to setup
   ;; make the initial network of two turtles and an edge
   make-node nobody        ;; first node, unattached
   make-node turtle 0      ;; second node, attached to first node
-  set recolor-done false
+
+set recolor-done false
   reset-ticks
 end
 
@@ -285,18 +289,18 @@ to closeranks
 end
 
 to polarise
-  ; Get the list of communities using nw:louvain-communities
+  if polarise_switch = true [ ; Get the list of communities using nw:louvain-communities
   let communities nw:louvain-communities print "got communities"
   if not empty? communities [
     ; Randomly select one community to act as the source of antagonists
     let antagonist-community communities print "not empty"
 
     ; Define all humans within a radius of 5 units from any agent in the antagonist community
-    let affected-humans humans with [any? other humans in-radius 2 with [member? self antagonist-community] ]
+    let affected-humans humans with [any? other humans in-radius group_distance with [not member? self antagonist-community] ]
 
     layout-spring affected-humans links (Constant * 10) (Length_ / 10) (Repulsion / 10) print "working_closeranks2"
 
-  ]
+  ]]
 end
 
 
@@ -362,8 +366,6 @@ end
 to cut_off-nodes
   if count humans > 1 and death_rate > random 100 [ ask one-of humans [ die ]]
 end
-
-
 
 to destroy_ideas
   ; First, remove all ideas that have no links
@@ -472,6 +474,37 @@ end
 to-report degree-centrality
   report map [count link-neighbors / (count turtles - 1)] sort turtles
 end
+
+to drag
+ifelse mouse-down? [
+    ; if the mouse is down then handle selecting and dragging
+    handle-select-and-drag
+  ][
+    ; otherwise, make sure the previous selection is deselected
+    set selected nobody
+    reset-perspective
+  ]
+  display ; update the display
+end
+
+to handle-select-and-drag
+  ; if no turtle is selected
+  ifelse selected = nobody  [
+    ; pick the closet turtle
+    set selected min-one-of turtles [distancexy mouse-xcor mouse-ycor]
+    ; check whether or not it's close enough
+    ifelse [distancexy mouse-xcor mouse-ycor] of selected > 1 [
+      set selected nobody ; if not, don't select it
+    ][
+      watch selected ; if it is, go ahead and `watch` it
+    ]
+  ][
+    ; if a turtle is selected, move it to the mouse
+    ask selected [ setxy mouse-xcor mouse-ycor ]
+  ]
+end
+
+
 
 
 ;::::::::::::::::::::REPORTING:::::::::::::::::::::::::::::::
@@ -684,10 +717,10 @@ NIL
 HORIZONTAL
 
 PLOT
-10
-546
-333
-707
+1346
+20
+1669
+181
 Degree distribution humans
 NIL
 # of nodes
@@ -815,7 +848,7 @@ NIL
 10.0
 true
 false
-"" ""
+"set-plot-x-range  0 10" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot mean [ current-speed ] of humans * 10"
 
@@ -882,7 +915,7 @@ Constant
 Constant
 0
 1
-0.2
+0.11
 0.01
 1
 NIL
@@ -897,7 +930,7 @@ Length_
 Length_
 0
 10
-2.0
+1.8
 0.1
 1
 NIL
@@ -1139,6 +1172,32 @@ length nw:louvain-communities
 17
 1
 11
+
+SWITCH
+768
+516
+899
+549
+Polarise_switch
+Polarise_switch
+1
+1
+-1000
+
+SLIDER
+902
+517
+1017
+550
+group_distance
+group_distance
+0
+10
+3.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
