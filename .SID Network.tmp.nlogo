@@ -30,8 +30,8 @@ to setup
   ;; make the initial network of two turtles and an edge
   make-node nobody        ;; first node, unattached
   make-node turtle 0      ;; second node, attached to first node
-
-set recolor-done false
+  set selected nobody
+  set recolor-done false
   reset-ticks
 end
 
@@ -59,7 +59,7 @@ to go
   cut_off-nodes
   generate_ideas
   generate_entities
-  recolour_boundary_nodes
+ recolour_boundary_nodes
   destroy_ideas
   destroy_entities
   resize_turtles
@@ -261,13 +261,15 @@ to recolour_boundary_nodes
     ask entities [ set color green ]
     ask ideas [ set color yellow ]
   ] [
-    ; Community detection is on, do it only once
+    ; Community detection is on, do it only once and periodically every 10 ticks
     if not recolor-done [
       color-clusters nw:louvain-communities
       set recolor-done true  ; Set the flag to prevent re-running
     ]
   ]
+  if remainder ticks  = 0 [ set recolor-done false ]
 end
+
 
 to toggle-community-detection
   if community-detection = false [
@@ -553,8 +555,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -45
 45
