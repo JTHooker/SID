@@ -150,6 +150,7 @@ to layout
     ;; the smaller the inputs to layout-spring we'll need to use
     let factor sqrt count humans
     ;; numbers here are arbitrarily chosen for pleasing appearance
+
     layout-spring humans links  Constant Length_  Repulsion
     layout-spring ideas links Constant Length_  Repulsion
     layout-spring entities links Constant Length_  Repulsion
@@ -267,7 +268,7 @@ to recolour_boundary_nodes
       set recolor-done true  ; Set the flag to prevent re-running
     ]
   ]
-  if remainder ticks  = 0 [ set recolor-done false ]
+  if remainder ticks 20 = 0 [ set recolor-done false ]
 end
 
 
@@ -360,6 +361,12 @@ to analyse-clusters ;H8
     show (word "Average size of cluster: " avg-size)
   ]
 end
+
+to Powerlink
+
+end
+
+
 
 
 
@@ -539,7 +546,6 @@ end
 to labelagents
   ;ask humans [ set label community ]
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 347
@@ -711,7 +717,7 @@ SLIDER
 max_humans
 max_humans
 0
-1000
+200
 150.0
 1
 1
@@ -917,7 +923,7 @@ Constant
 Constant
 0
 1
-0.11
+0.16
 0.01
 1
 NIL
@@ -932,7 +938,7 @@ Length_
 Length_
 0
 10
-1.8
+4.9
 0.1
 1
 NIL
@@ -947,7 +953,7 @@ Repulsion
 Repulsion
 0
 20
-5.0
+6.4
 0.1
 1
 NIL
@@ -1089,7 +1095,7 @@ Mobility
 Mobility
 0
 100
-24.0
+25.0
 1
 1
 NIL
@@ -1200,6 +1206,50 @@ group_distance
 1
 NIL
 HORIZONTAL
+
+TEXTBOX
+1157
+421
+1307
+473
+Selfish herd model of social identity\n\nLeaders vs pioneers
+10
+0.0
+1
+
+BUTTON
+556
+519
+643
+552
+Voronoi
+\n  ask patches [\n    set pcolor [color] of min-one-of humans [distance myself]\n  ]\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+548
+561
+668
+594
+Reset patch color
+ask patches [ set pcolor black]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
