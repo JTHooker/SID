@@ -6,6 +6,8 @@ turtles-own [
   community
 ]
 
+
+
 globals [
   recolor-done
   selected
@@ -26,12 +28,14 @@ breed [ antagonists antagonist ]
 
 to setup
   clear-all
+  random-seed 99
   set-default-shape humans "circle"
   ;; make the initial network of two turtles and an edge
   make-node nobody        ;; first node, unattached
   make-node turtle 0      ;; second node, attached to first node
   set selected nobody
   set recolor-done false
+  ask patches [ if pxcor + pycor < 0 [ set pcolor grey - 1]]
   reset-ticks
 end
 
@@ -340,7 +344,7 @@ to Creativity_Hypothesis
     let sum_position sum (list xcor ycor)
     if sum_position < Discrimination_Point  [
       ; Directly ask all links meeting the condition to die
-     set heading 45 + random 45 - random 45 fd random 5 print "H4"
+     set heading 0 + random 45 - random 45 fd random 5 print "H4"
       ]
     ]
 end
@@ -548,9 +552,9 @@ to labelagents
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-347
+397
 10
-758
+808
 422
 -1
 -1
@@ -725,10 +729,10 @@ NIL
 HORIZONTAL
 
 PLOT
-1346
-20
-1669
-181
+5
+148
+328
+324
 Degree distribution humans
 NIL
 # of nodes
@@ -769,10 +773,10 @@ count ideas
 11
 
 MONITOR
-758
-10
-831
-55
+1018
+74
+1091
+119
 NIL
 count links
 17
@@ -845,8 +849,8 @@ PENS
 PLOT
 830
 275
-1062
-448
+1183
+449
 Disturbance
 NIL
 NIL
@@ -908,7 +912,7 @@ Death_rate
 Death_rate
 0
 100
-5.0
+46.0
 1
 1
 NIL
@@ -923,7 +927,7 @@ Constant
 Constant
 0
 1
-0.16
+0.1
 0.01
 1
 NIL
@@ -938,7 +942,7 @@ Length_
 Length_
 0
 10
-4.9
+3.4
 0.1
 1
 NIL
@@ -953,17 +957,17 @@ Repulsion
 Repulsion
 0
 20
-6.4
+5.6
 0.1
 1
 NIL
 HORIZONTAL
 
 SWITCH
-349
-431
-514
-464
+831
+424
+996
+457
 Community-detection
 Community-detection
 0
@@ -971,10 +975,10 @@ Community-detection
 -1000
 
 BUTTON
-517
-431
-618
-464
+1058
+473
+1159
+506
 Destroy Links
 kill-links
 T
@@ -988,10 +992,10 @@ NIL
 1
 
 BUTTON
-621
-431
-732
-464
+943
+473
+1054
+506
 Destroy Agents
 destroy_agents
 T
@@ -1005,10 +1009,10 @@ NIL
 1
 
 TEXTBOX
-1115
-330
-1265
-369
+1299
+411
+1449
+450
 Closing ranks in response to threats - this is a social selfish herd
 10
 0.0
@@ -1142,9 +1146,9 @@ SLIDER
 507
 Discrimination_Point
 Discrimination_Point
--100
-100
--52.0
+-50
+75
+1.0
 1
 1
 NIL
@@ -1188,7 +1192,7 @@ SWITCH
 549
 Polarise_switch
 Polarise_switch
-1
+0
 1
 -1000
 
@@ -1201,17 +1205,17 @@ group_distance
 group_distance
 0
 10
-3.0
+2.0
 1
 1
 NIL
 HORIZONTAL
 
 TEXTBOX
-1157
-421
-1307
-473
+1299
+353
+1449
+405
 Selfish herd model of social identity\n\nLeaders vs pioneers
 10
 0.0
@@ -1224,7 +1228,7 @@ BUTTON
 552
 Voronoi
 \n  ask patches [\n    set pcolor [color] of min-one-of humans [distance myself]\n  ]\n
-NIL
+T
 1
 T
 OBSERVER
@@ -1240,7 +1244,7 @@ BUTTON
 668
 594
 Reset patch color
-ask patches [ set pcolor black]
+ask patches [ set pcolor black]\nask patches [ if pxcor + pycor < 0 [ set pcolor grey - 1]]
 NIL
 1
 T
@@ -1249,6 +1253,46 @@ NIL
 NIL
 NIL
 NIL
+1
+
+TEXTBOX
+585
+425
+735
+443
+Health
+14
+0.0
+1
+
+TEXTBOX
+350
+198
+397
+246
+Social Status
+14
+0.0
+1
+
+TEXTBOX
+405
+398
+555
+416
+Low
+14
+9.9
+1
+
+TEXTBOX
+771
+18
+921
+36
+High
+14
+9.9
 1
 
 @#$#@#$#@
