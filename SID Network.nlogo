@@ -761,10 +761,10 @@ count ideas
 11
 
 MONITOR
-1107
-338
-1180
-383
+1105
+226
+1178
+271
 NIL
 count links
 17
@@ -853,10 +853,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot mean [ current-speed ] of humans * 10"
 
 BUTTON
-814
-266
-948
-299
+815
+192
+949
+225
 NIL
 Drag
 T
@@ -881,10 +881,10 @@ count entities
 11
 
 MONITOR
-1107
-384
-1181
-429
+1105
+272
+1179
+317
 Link Power
 mean [ power ] of links
 17
@@ -907,10 +907,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-814
-453
-986
-486
+815
+379
+987
+412
 Constant
 Constant
 0
@@ -922,10 +922,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-814
-417
-986
-450
+815
+343
+987
+376
 Length_
 Length_
 0
@@ -937,10 +937,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-814
-487
-986
-520
+815
+413
+987
+446
 Repulsion
 Repulsion
 0
@@ -963,10 +963,10 @@ Community-detection
 -1000
 
 BUTTON
-928
-304
-1029
-337
+929
+230
+1030
+263
 Destroy Links
 kill-links
 T
@@ -980,10 +980,10 @@ NIL
 1
 
 BUTTON
-813
-304
-924
-337
+814
+230
+925
+263
 Destroy Agents
 destroy_agents
 T
@@ -1007,10 +1007,10 @@ Closing ranks in response to threats - this is a social selfish herd
 1
 
 MONITOR
-1108
-292
-1179
-337
+1106
+180
+1177
+225
 Modularity
 modularity
 17
@@ -1018,10 +1018,10 @@ modularity
 11
 
 BUTTON
-814
-378
-940
-411
+815
+304
+941
+337
 Launch antagonist
 ask n-of 1 patches [ sprout-antagonists 1 [ set size 5 set color white ]] 
 NIL
@@ -1045,10 +1045,10 @@ Divide and conquer
 1
 
 BUTTON
-813
-160
-948
-193
+814
+86
+949
+119
 Leave_Group H5
 Leave_group
 T
@@ -1062,10 +1062,10 @@ NIL
 1
 
 SLIDER
-957
-160
-1060
-193
+958
+86
+1061
+119
 Mobility
 Mobility
 0
@@ -1077,10 +1077,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-813
-125
-948
-158
+814
+51
+949
+84
 Restore_Identity H4
 Restore_Identity
 T
@@ -1094,10 +1094,10 @@ NIL
 1
 
 BUTTON
-814
-196
-947
-229
+815
+122
+948
+155
 Creativity H6
 Creativity_Hypothesis
 T
@@ -1111,10 +1111,10 @@ NIL
 1
 
 SLIDER
-814
-230
-986
-263
+815
+156
+987
+189
 Discrimination_Point
 Discrimination_Point
 -50
@@ -1126,20 +1126,20 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-989
-238
-1004
-256
+990
+164
+1005
+182
 H7
 10
 0.0
 1
 
 TEXTBOX
-994
-455
-1041
-503
+995
+381
+1042
+429
 H13 - Shared Meaning
 10
 0.0
@@ -1157,10 +1157,10 @@ length nw:louvain-communities
 11
 
 SWITCH
-814
-342
-945
-375
+815
+268
+946
+301
 Polarise_switch
 Polarise_switch
 0
@@ -1168,10 +1168,10 @@ Polarise_switch
 -1000
 
 SLIDER
-948
-343
-1063
-376
+949
+269
+1064
+302
 group_distance
 group_distance
 0
@@ -1193,10 +1193,10 @@ Selfish herd model of social identity\n\nLeaders vs pioneers
 1
 
 BUTTON
-1095
-506
-1182
-539
+1314
+465
+1401
+498
 Voronoi
 \n  ask patches [\n    set pcolor [color] of min-one-of humans [distance myself]\n  ]\n
 T
@@ -1210,10 +1210,10 @@ NIL
 1
 
 BUTTON
-1087
-548
-1207
-581
+1316
+507
+1436
+540
 Reset patch color
 ask patches [ set pcolor black]\nask patches [ if pxcor + pycor < 0 [ set pcolor grey - 1]]
 NIL
@@ -1269,38 +1269,38 @@ High
 TEXTBOX
 980
 19
-997
+1046
 37
-H1
+H1, H2 & H3
 10
 0.0
 1
 
 TEXTBOX
-959
-277
-1015
-295
+960
+203
+1016
+221
 H9 & H10
 10
 0.0
 1
 
 TEXTBOX
-1036
-314
-1061
-332
+1037
+240
+1062
+258
 H11
 10
 0.0
 1
 
 TEXTBOX
-952
-385
-974
-403
+953
+311
+975
+329
 H12
 10
 0.0
@@ -1326,10 +1326,10 @@ PENS
 "Groups" 1.0 0 -7500403 true "" "plot length nw:louvain-communities"
 
 BUTTON
-815
-524
-987
-557
+816
+450
+988
+483
 Closer Ties
 ask one-of humans [ create-humanlink-with one-of other humans ] 
 T
@@ -1343,20 +1343,20 @@ NIL
 1
 
 TEXTBOX
-998
-530
-1022
-548
-H14
+999
+456
+1023
+495
+H14 & H15?
 10
 0.0
 1
 
 BUTTON
 815
-562
-916
-595
+489
+988
+522
 Find_leader
 find_leader
 NIL
