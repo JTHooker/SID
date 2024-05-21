@@ -473,21 +473,26 @@ to-report distance-to-line [p1 p2 p0]
   report (abs(A * x0 + B * y0 + C)) / denominator
 end
 
+
 to find_leader
-  ; Pick one random patch and set its color to white
-  if not any? patches with [ pcolor = white ]  [ ask n-of 1 patches [ set pcolor white ]]
+  ; Pick one random patch and set its color to white if none exist
+  if not any? patches with [ pcolor = white ] [
+    ask n-of 1 patches [ set pcolor white ]
+  ]
 
   ; Find the human closest to the white patch
   let white-patch one-of patches with [pcolor = white]
   let leader min-one-of humans [ distance white-patch ]
 
-  ; Create links between the leader and 25 randomly selected humans
-  let followers min-n-of (count humans * 0.2) other humans [ distance white-patch ]
+  ; Find the closest 20% of humans to the white patch, excluding the leader
+  let followers min-n-of (count humans * 0.3) (other humans with [self != leader]) [ distance white-patch ]
 
-  ask followers [
-    create-humanlinks-with leader
+  ; Create links between the leader and the followers
+  ask leader [
+    create-humanlinks-with followers
   ]
 end
+
 
 
 
