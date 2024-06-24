@@ -28,7 +28,7 @@ breed [ antagonists antagonist ]
 
 to setup
   clear-all
-  random-seed 99
+  random-seed 98
   set-default-shape humans "circle"
   ;; make the initial network of two turtles and an edge
   make-node nobody        ;; first node, unattached
@@ -576,10 +576,10 @@ to labelagents
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-397
-10
-808
-422
+390
+11
+801
+423
 -1
 -1
 4.43
@@ -710,7 +710,7 @@ max_humans
 max_humans
 0
 200
-150.0
+20.0
 1
 1
 NIL
@@ -817,10 +817,10 @@ NIL
 HORIZONTAL
 
 PLOT
-1105
-27
-1305
-177
+1052
+436
+1252
+586
 Network Density
 NIL
 NIL
@@ -835,11 +835,11 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot network-density * 100"
 
 PLOT
-398
-449
-808
-623
-Disturbance
+388
+440
+798
+614
+Disruption
 NIL
 NIL
 0.0
@@ -915,7 +915,7 @@ Constant
 Constant
 0
 1
-0.12
+0.1
 0.01
 1
 NIL
@@ -930,7 +930,7 @@ Length_
 Length_
 0
 10
-3.5
+1.4
 0.1
 1
 NIL
@@ -945,7 +945,7 @@ Repulsion
 Repulsion
 0
 20
-5.6
+5.7
 0.1
 1
 NIL
@@ -994,16 +994,6 @@ NIL
 NIL
 NIL
 NIL
-1
-
-TEXTBOX
-1299
-411
-1449
-450
-Closing ranks in response to threats - this is a social selfish herd
-10
-0.0
 1
 
 MONITOR
@@ -1070,7 +1060,7 @@ Mobility
 Mobility
 0
 100
-50.0
+29.0
 1
 1
 NIL
@@ -1163,7 +1153,7 @@ SWITCH
 301
 Polarise_switch
 Polarise_switch
-0
+1
 1
 -1000
 
@@ -1176,7 +1166,7 @@ group_distance
 group_distance
 0
 10
-2.0
+3.0
 1
 1
 NIL
@@ -1343,10 +1333,10 @@ NIL
 1
 
 TEXTBOX
-999
-456
-1023
-495
+995
+452
+1038
+491
 H14 & H15?
 10
 0.0
@@ -1367,6 +1357,16 @@ NIL
 NIL
 NIL
 NIL
+1
+
+TEXTBOX
+761
+21
+801
+39
+High
+14
+9.9
 1
 
 @#$#@#$#@
