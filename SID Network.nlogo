@@ -69,6 +69,7 @@ to go
   resize_turtles
   if layout? [ layout ]
   tick
+  break-edges
   calculate_speed
   checkcommunities
   toggle-community-detection
@@ -493,13 +494,13 @@ to find_leader
   ]
 end
 
-
-
-
-
-
-
-
+to break-edges
+  ask one-of links [
+    if [count link-neighbors] of end1 > (Length_ * 10) or [count link-neighbors] of end2 > (Length_ * 10) [
+      die
+    ]
+  ]
+end
 
 
 ;;;measures of the network
@@ -710,7 +711,7 @@ max_humans
 max_humans
 0
 200
-20.0
+150.0
 1
 1
 NIL
@@ -930,7 +931,7 @@ Length_
 Length_
 0
 10
-1.4
+1.5
 0.1
 1
 NIL
@@ -945,7 +946,7 @@ Repulsion
 Repulsion
 0
 20
-5.7
+5.0
 0.1
 1
 NIL
