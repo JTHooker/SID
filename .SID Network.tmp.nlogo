@@ -11,6 +11,8 @@ turtles-own [
 globals [
   recolor-done
   selected
+  aggspeed
+  systemdisturbance
 ]
 
 humans-own [ linkstome powerbalance happy? ]
@@ -495,7 +497,7 @@ to find_leader
 end
 
 to break-edges
-  ask olinks [
+  ask one-of links [
     if [count link-neighbors] of end1 > (Length_ * 10) or [count link-neighbors] of end2 > (Length_ * 10) [
       die
     ]
@@ -574,6 +576,13 @@ end
 
 to labelagents
   ;ask humans [ set label community ]
+end
+
+to measuredisturbance
+  let currentspeed mean [ current-speed ]  of humans
+  let priorspeed currentspeed
+  ifelse ticks - 150 > 0 [ set aggspeed priorspeed + currentspeed ] [ set aggspeed 0 ]
+  set disturbance
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -836,10 +845,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot network-density * 100"
 
 PLOT
-388
-440
-798
-614
+389
+453
+799
+627
 Disruption
 NIL
 NIL
@@ -931,7 +940,7 @@ Length_
 Length_
 0
 10
-2.0
+1.5
 0.1
 1
 NIL
@@ -946,7 +955,7 @@ Repulsion
 Repulsion
 0
 20
-5.7
+5.0
 0.1
 1
 NIL
@@ -959,7 +968,7 @@ SWITCH
 43
 Community-detection
 Community-detection
-1
+0
 1
 -1000
 
