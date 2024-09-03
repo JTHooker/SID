@@ -13,6 +13,8 @@ globals [
   selected
   aggspeed
   systemdisturbance
+  priorspeed
+  value-window
 ]
 
 humans-own [ linkstome powerbalance happy? ]
@@ -31,6 +33,8 @@ breed [ antagonists antagonist ]
 to setup
   clear-all
   random-seed 98
+  set priorspeed 0
+  set value-window  [ ]
   set-default-shape humans "circle"
   ;; make the initial network of two turtles and an edge
   make-node nobody        ;; first node, unattached
@@ -80,6 +84,7 @@ to go
   closeranks
   polarise
   analyse-clusters
+  measuredisturbance
 end
 
 to calculate_position
@@ -95,6 +100,7 @@ to make-node [old-node]
   if count humans < max_humans [  create-humans 1
   [
     set color red
+      set current-speed 0
     set happy? true
     if old-node != nobody
       [ create-humanlink-with old-node [ set color green set power random 100 ]
@@ -109,6 +115,7 @@ to generate_ideas
     if any? other humans in-radius exploration and count ideas < abs (count humans * .5)  [
       hatch-ideas 1 [
         set shape "triangle"
+        set current-speed 0
         set color yellow
         let new_idea self  ; Store the newly created idea in a variable
         ask one-of other humans-here [
@@ -124,6 +131,7 @@ to generate_entities
     if any? other humans in-radius exploration_entities and count entities < abs (count humans * .5)  [
       hatch-entities 1 [
         set shape "square"
+        set current-speed 0
         set color green
         let new_entity self  ; Store the newly created idea in a variable
         ask one-of other humans-here [
@@ -579,11 +587,16 @@ to labelagents
 end
 
 to measuredisturbance
-  let currentspeed mean [ current-speed ]  of humans
-  let priorspeed currentspeed
-  ifelse ticks - 150 > 0 [ set aggspeed priorspeed + currentspeed ] [ set aggspeed 0 ]
-  set disturbance
+  if observation_period > 0 [ set priorspeed  mean [ current-speed ] of humans ]
+  set value-window lput priorspeed value-window
+    if length value-window > observation_period [
+    set value-window sublist value-window 1 (observation_period + 1)  ; Correctly trims to the window size
+  ]
+  show (word "Value-window: " value-window)
+  set systemdisturbance mean value-window
+  show (word "System Disturbance: " systemdisturbance)
 end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 390
@@ -720,7 +733,7 @@ max_humans
 max_humans
 0
 200
-150.0
+23.0
 1
 1
 NIL
@@ -861,6 +874,7 @@ false
 "set-plot-x-range  0 10" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot mean [ current-speed ] of humans * 10"
+"Disturbance" 1.0 0 -5298144 true "" "plot systemdisturbance"
 
 BUTTON
 815
@@ -1378,6 +1392,32 @@ High
 14
 9.9
 1
+
+MONITOR
+818
+549
+975
+595
+NIL
+systemdisturbance
+17
+1
+11
+
+SLIDER
+5
+590
+178
+624
+Observation_period
+Observation_period
+0
+500
+4.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
