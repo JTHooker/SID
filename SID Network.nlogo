@@ -486,23 +486,48 @@ end
 
 
 to find_leader
-  ; Pick one random patch and set its color to white if none exist
-  if not any? patches with [ pcolor = white ] [
-    ask n-of 1 patches [ set pcolor white ]
-  ]
+  ; Find the human closest to a random patch
+  ask humans [
+    let white-patch one-of patches
+    let leader min-one-of humans [ distance white-patch ]
 
-  ; Find the human closest to the white patch
-  let white-patch one-of patches with [pcolor = white]
-  let leader min-one-of humans [ distance white-patch ]
+    ; Set the number of links (hops) we want to consider
+    let n 2  ; You can adjust this value
 
-  ; Find the closest 20% of humans to the white patch, excluding the leader
-  let followers min-n-of (count humans * 0.3) (other humans with [self != leader]) [ distance white-patch ]
+    ; Find all agents within n links of the leader using BFS
+    let within-n-links find-humans-within-n-links leader n
 
-  ; Create links between the leader and the followers
-  ask leader [
-    create-humanlinks-with followers
+    ; Now delete those turtles that are outside n links
+    ask humans [
+      if self != leader and not member? self within-n-links [
+        die
+      ]
+    ]
   ]
 end
+
+to-report find-humans-within-n-links [start-turtle n]
+  ; This is a breadth-first search (BFS) to find turtles within n links
+  let visited turtle-set start-turtle
+  let frontier turtle-set start-turtle
+
+  ; Perform BFS for n steps
+  repeat n [
+    ; Get all unvisited neighbors connected by links
+    let new-frontier turtle-set no-turtles
+    ask frontier [
+      set new-frontier (turtle-set new-frontier link-neighbors with [not member? self visited])
+    ]
+
+    set frontier new-frontier
+    set visited (turtle-set visited frontier)
+  ]
+
+  report visited
+end
+
+
+
 
 to break-edges
   ask one-of links [
@@ -600,12 +625,12 @@ end
 @#$#@#$#@
 GRAPHICS-WINDOW
 390
-11
-801
-423
+9
+805
+425
 -1
 -1
-4.43
+4.011
 1
 10
 1
@@ -710,10 +735,10 @@ count humans
 11
 
 SLIDER
-1316
-71
-1488
-104
+1479
+73
+1651
+106
 Exploration
 Exploration
 0
@@ -733,7 +758,7 @@ max_humans
 max_humans
 0
 200
-150.0
+100.0
 1
 1
 NIL
@@ -758,10 +783,10 @@ PENS
 "default" 1.0 1 -16777216 true "" "if not plot? [ stop ]\nlet max-degree max [count link-neighbors] of humans\nplot-pen-reset  ;; erase what we plotted before\nset-plot-x-range 1 (max-degree + 1)  ;; + 1 to make room for the width of the last bar\nhistogram [count link-neighbors] of humans"
 
 SLIDER
-1316
-111
-1488
-144
+1479
+113
+1651
+146
 LinkNumber
 LinkNumber
 0
@@ -784,21 +809,21 @@ count ideas
 11
 
 MONITOR
-1105
-226
-1178
-271
-NIL
-count links
-17
+1268
+228
+1428
+274
+Mean degree
+count links / count humans
+1
 1
 11
 
 SLIDER
-1315
-150
-1487
-183
+1478
+152
+1650
+185
 Perturb_ideas
 Perturb_ideas
 0
@@ -810,10 +835,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1316
-186
-1488
-219
+1479
+188
+1651
+221
 Perturb_Entities
 Perturb_Entities
 0
@@ -825,10 +850,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1317
-21
-1489
-54
+1480
+23
+1652
+56
 Exploration_Entities
 Exploration_Entities
 0
@@ -840,10 +865,10 @@ NIL
 HORIZONTAL
 
 PLOT
-1052
-436
-1252
-586
+1215
+438
+1415
+588
 Network Density
 NIL
 NIL
@@ -860,8 +885,8 @@ PENS
 PLOT
 389
 453
-799
-627
+953
+628
 Disruption
 NIL
 NIL
@@ -877,10 +902,10 @@ PENS
 "Disturbance" 1.0 0 -5298144 true "" "plot systemdisturbance * 10"
 
 BUTTON
-815
-192
-949
-225
+978
+194
+1112
+227
 NIL
 Drag
 T
@@ -905,10 +930,10 @@ count entities
 11
 
 MONITOR
-1105
-272
-1179
-317
+1268
+274
+1342
+319
 Link Power
 mean [ power ] of links
 17
@@ -916,10 +941,10 @@ mean [ power ] of links
 11
 
 SLIDER
-1314
-224
-1486
-257
+1477
+226
+1649
+259
 Death_rate
 Death_rate
 0
@@ -931,10 +956,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-815
-379
-987
-412
+978
+382
+1150
+415
 Constant
 Constant
 0
@@ -946,10 +971,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-815
-343
-987
-376
+978
+345
+1150
+378
 Length_
 Length_
 0
@@ -961,10 +986,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-815
-413
-987
-446
+978
+415
+1150
+448
 Repulsion
 Repulsion
 0
@@ -976,10 +1001,10 @@ NIL
 HORIZONTAL
 
 SWITCH
-813
-10
-978
-43
+976
+12
+1141
+45
 Community-detection
 Community-detection
 1
@@ -987,10 +1012,10 @@ Community-detection
 -1000
 
 BUTTON
-929
-230
-1030
-263
+1093
+232
+1194
+265
 Destroy Links
 kill-links
 T
@@ -1004,10 +1029,10 @@ NIL
 1
 
 BUTTON
-814
-230
-925
-263
+977
+232
+1088
+265
 Destroy Agents
 destroy_agents
 T
@@ -1021,10 +1046,10 @@ NIL
 1
 
 MONITOR
-1106
-180
-1177
-225
+1269
+182
+1340
+227
 Modularity
 modularity
 17
@@ -1032,10 +1057,10 @@ modularity
 11
 
 BUTTON
-815
-304
-941
-337
+978
+306
+1104
+339
 Launch antagonist
 ask n-of 1 patches [ sprout-antagonists 1 [ set size 5 set color white ]] 
 NIL
@@ -1049,20 +1074,20 @@ NIL
 1
 
 TEXTBOX
-1300
-332
-1450
-350
+1463
+334
+1613
+352
 Divide and conquer
 10
 0.0
 1
 
 BUTTON
-814
-86
-949
-119
+977
+88
+1112
+121
 Leave_Group H5
 Leave_group
 T
@@ -1076,10 +1101,10 @@ NIL
 1
 
 SLIDER
-958
-86
-1061
-119
+1122
+88
+1225
+121
 Mobility
 Mobility
 0
@@ -1091,10 +1116,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-814
-51
-949
-84
+977
+53
+1112
+86
 Restore_Identity H4
 Restore_Identity
 T
@@ -1108,10 +1133,10 @@ NIL
 1
 
 BUTTON
-815
-122
-948
-155
+978
+124
+1111
+157
 Creativity H6
 Creativity_Hypothesis
 T
@@ -1125,10 +1150,10 @@ NIL
 1
 
 SLIDER
-815
-156
-987
-189
+978
+158
+1150
+191
 Discrimination_Point
 Discrimination_Point
 -50
@@ -1140,20 +1165,20 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-990
-164
-1005
-182
+1153
+166
+1168
+184
 H7
 10
 0.0
 1
 
 TEXTBOX
-995
-381
-1042
-429
+1158
+383
+1205
+431
 H13 - Shared Meaning
 10
 0.0
@@ -1171,10 +1196,10 @@ length nw:louvain-communities
 11
 
 SWITCH
-815
-268
-946
-301
+978
+270
+1109
+303
 Polarise_switch
 Polarise_switch
 1
@@ -1182,10 +1207,10 @@ Polarise_switch
 -1000
 
 SLIDER
-949
-269
-1064
-302
+1113
+272
+1228
+305
 group_distance
 group_distance
 0
@@ -1197,20 +1222,20 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-1299
-353
-1449
-405
+1463
+355
+1613
+407
 Selfish herd model of social identity\n\nLeaders vs pioneers
 10
 0.0
 1
 
 BUTTON
-1314
-465
-1401
-498
+1477
+467
+1564
+500
 Voronoi
 \n  ask patches [\n    set pcolor [color] of min-one-of humans [distance myself]\n  ]\n
 T
@@ -1224,10 +1249,10 @@ NIL
 1
 
 BUTTON
-1316
-507
-1436
-540
+1479
+509
+1599
+542
 Reset patch color
 ask patches [ set pcolor black]\nask patches [ if pxcor + pycor < 0 [ set pcolor grey - 1]]
 NIL
@@ -1271,50 +1296,50 @@ Low
 1
 
 TEXTBOX
-1254
-10
-1404
-28
+1417
+12
+1567
+30
 High
 14
 9.9
 1
 
 TEXTBOX
-980
-19
-1046
-37
+1143
+22
+1209
+40
 H1, H2 & H3
 10
 0.0
 1
 
 TEXTBOX
-960
-203
-1016
-221
+1123
+205
+1179
+223
 H9 & H10
 10
 0.0
 1
 
 TEXTBOX
-1037
-240
-1062
-258
+1200
+242
+1225
+260
 H11
 10
 0.0
 1
 
 TEXTBOX
-953
-311
-975
-329
+1116
+313
+1138
+331
 H12
 10
 0.0
@@ -1340,10 +1365,10 @@ PENS
 "Groups" 1.0 0 -7500403 true "" "plot length nw:louvain-communities"
 
 BUTTON
-816
-450
-988
-483
+979
+452
+1151
+485
 Closer Ties
 ask one-of humans [ create-humanlink-with one-of other humans ] 
 T
@@ -1357,20 +1382,20 @@ NIL
 1
 
 TEXTBOX
-995
-452
-1038
-491
+1158
+454
+1201
+493
 H14 & H15?
 10
 0.0
 1
 
 BUTTON
-815
-489
-988
-522
+978
+492
+1151
+525
 Find_leader
 find_leader
 NIL
@@ -1393,17 +1418,6 @@ High
 9.9
 1
 
-MONITOR
-818
-549
-975
-595
-NIL
-systemdisturbance
-17
-1
-11
-
 SLIDER
 5
 590
@@ -1413,11 +1427,29 @@ Observation_period
 Observation_period
 0
 500
-43.0
+75.0
 1
 1
 NIL
 HORIZONTAL
+
+PLOT
+1215
+600
+1415
+750
+Mean degree
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot (count links / count humans)"
 
 @#$#@#$#@
 ## WHAT IS IT?
