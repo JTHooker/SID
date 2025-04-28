@@ -943,10 +943,10 @@ mean [ power ] of links
 11
 
 SLIDER
-1087
-531
-1259
-564
+1090
+529
+1262
+562
 Death_rate
 Death_rate
 0
@@ -966,7 +966,7 @@ Constant
 Constant
 0
 1
-0.1
+0.13
 0.01
 1
 NIL
@@ -981,7 +981,7 @@ Length_
 Length_
 0
 10
-2.5
+1.3
 0.1
 1
 NIL
@@ -996,7 +996,7 @@ Repulsion
 Repulsion
 0
 20
-8.0
+4.5
 0.1
 1
 NIL
@@ -1009,7 +1009,7 @@ SWITCH
 43
 Community-detection
 Community-detection
-1
+0
 1
 -1000
 
